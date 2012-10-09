@@ -16,20 +16,26 @@
 
 namespace Viterbi
 {
-  template< class TState, class TProbability >
+  template< class TState, class TObservation, class TProbability >
   class HMM
   {
   public:
 
-    typedef HMM< TState, TProbability > Self;
+    typedef HMM< TState, TObservation, TProbability > Self;
 
     typedef TState                    StateType;
     typedef std::vector< StateType >  StateVectorType;
 
+    typedef TObservation                    ObservationType;
+    typedef std::vector< ObservationType >  ObservationVectorType;
+
     typedef TProbability              ProbabilityType;
 
-    typedef boost::unordered_map< StateType, ProbabilityType>       StateProbabilityMapType;
-    typedef boost::unordered_map< StateType, StateProbabilityMapType> StateStateProbabilityMapType;
+    typedef boost::unordered_map< StateType, ProbabilityType>               StateProbabilityMapType;
+    typedef boost::unordered_map< ObservationType, ProbabilityType>         ObservationProbabilityMapType;
+
+    typedef boost::unordered_map< StateType, StateProbabilityMapType>       StateStateProbabilityMapType;
+    typedef boost::unordered_map< StateType, ObservationProbabilityMapType> StateObservationProbabilityMapType;
 
     HMM(){}
     ~HMM(){}
@@ -41,10 +47,10 @@ namespace Viterbi
     { return m_States; }
 
 
-    void SetObservations( const StateVectorType& observations )
+    void SetObservations( const ObservationVectorType& observations )
     { m_Observations = observations; }
 
-    const StateVectorType& GetObservations() const
+    const ObservationVectorType& GetObservations() const
     { return m_Observations;}
 
 
@@ -62,32 +68,32 @@ namespace Viterbi
     { return m_TransitionProbability; }
 
 
-    void SetEmissionProbability( const StateStateProbabilityMapType& e )
+    void SetEmissionProbability( const StateObservationProbabilityMapType& e )
     { m_EmissionProbability = e; }
 
-    StateStateProbabilityMapType& GetEmissionProbability()
+    StateObservationProbabilityMapType& GetEmissionProbability()
     { return m_EmissionProbability; }
 
   private:
     HMM( const HMM& );
     void operator = ( const HMM& );
 
-    StateVectorType               m_States;
-    StateVectorType               m_Observations;
-    StateProbabilityMapType       m_StartProbability;
-    StateStateProbabilityMapType  m_TransitionProbability;
-    StateStateProbabilityMapType  m_EmissionProbability;
+    ObservationVectorType               m_Observations;
+    StateVectorType                     m_States;
+    StateProbabilityMapType             m_StartProbability;
+    StateStateProbabilityMapType        m_TransitionProbability;
+    StateObservationProbabilityMapType  m_EmissionProbability;
   };
 
-  template< class TState, class TProbability >
-  std::ostream& operator << (std::ostream& os, HMM< TState, TProbability > &);
+  template< class TState, class TObservation, class TProbability >
+  std::ostream& operator << (std::ostream& os, HMM< TState, TObservation, TProbability > &);
 
   //
   // computes total probability for observation
   // most likely viterbi path
   // and probability of such path
   //
-  template< class TState, class TProbability >
+  template< class TState, class TObservation, class TProbability >
   class ForwardViberti
   {
   public:
@@ -95,12 +101,18 @@ namespace Viterbi
     typedef TState                    StateType;
     typedef std::vector< StateType >  StateVectorType;
 
+    typedef TObservation                    ObservationType;
+    typedef std::vector< ObservationType >  ObservationVectorType;
+
     typedef TProbability              ProbabilityType;
 
-    typedef boost::unordered_map< StateType, ProbabilityType>         StateProbabilityMapType;
-    typedef boost::unordered_map< StateType, StateProbabilityMapType> StateStateProbabilityMapType;
+    typedef boost::unordered_map< StateType, ProbabilityType>               StateProbabilityMapType;
+    typedef boost::unordered_map< ObservationType, ProbabilityType>         ObservationProbabilityMapType;
 
-    typedef HMM< TState, TProbability > HMMType;
+    typedef boost::unordered_map< StateType, StateProbabilityMapType>       StateStateProbabilityMapType;
+    typedef boost::unordered_map< StateType, ObservationProbabilityMapType> StateObservationProbabilityMapType;
+
+    typedef HMM< TState, TObservation, TProbability > HMMType;
 
     ForwardViberti( HMMType& hmm )
     {
@@ -130,11 +142,11 @@ namespace Viterbi
     ForwardViberti( const ForwardViberti& );
     void operator = ( const ForwardViberti& );
 
-    StateVectorType               m_Observations;
-    StateVectorType               m_States;
-    StateProbabilityMapType       m_StartProbability;
-    StateStateProbabilityMapType  m_TransitionProbability;
-    StateStateProbabilityMapType  m_EmissionProbability;
+    ObservationVectorType               m_Observations;
+    StateVectorType                     m_States;
+    StateProbabilityMapType             m_StartProbability;
+    StateStateProbabilityMapType        m_TransitionProbability;
+    StateObservationProbabilityMapType  m_EmissionProbability;
 
     ProbabilityType               m_TotalProbabilityOfObservationSequence;
     ProbabilityType               m_TotalProbabilityOfVibertiPath;

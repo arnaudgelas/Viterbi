@@ -4,19 +4,22 @@
 #include "viterbi.h"
 
 #include <boost/foreach.hpp>
+#include <boost/lexical_cast.hpp>
 
 
 namespace Viterbi
 {
-
-  template< class TState, class TProbability >
+  template< class TState, class TObservation, class TProbability >
   std::ostream&
-  operator << (std::ostream& os, HMM< TState, TProbability >& h)
+  operator << (std::ostream& os, HMM< TState, TObservation, TProbability >& h)
   {
-    typedef HMM< TState, TProbability >                     HMMType;
-    typedef typename HMMType::StateVectorType               StateVectorType;
-    typedef typename HMMType::StateProbabilityMapType       StateProbabilityMapType;
-    typedef typename HMMType::StateStateProbabilityMapType  StateStateProbabilityMapType;
+    typedef HMM< TState, TObservation, TProbability >             HMMType;
+    typedef typename HMMType::StateVectorType                     StateVectorType;
+    typedef typename HMMType::ObservationVectorType               ObservationVectorType;
+    typedef typename HMMType::StateProbabilityMapType             StateProbabilityMapType;
+    typedef typename HMMType::StateStateProbabilityMapType        StateStateProbabilityMapType;
+    typedef typename HMMType::ObservationProbabilityMapType       ObservationProbabilityMapType;
+    typedef typename HMMType::StateObservationProbabilityMapType  StateObservationProbabilityMapType;
 
     os << "States:" << std::endl;
     StateVectorType states = h.GetStates();
@@ -26,8 +29,8 @@ namespace Viterbi
       }
 
     os << "Observations:" << std::endl;
-    StateVectorType observations = h.GetObservations();
-    BOOST_FOREACH(typename StateVectorType::value_type s, observations )
+    ObservationVectorType observations = h.GetObservations();
+    BOOST_FOREACH(typename ObservationVectorType::value_type s, observations )
       {
       os << "\tO: " << s << std::endl;
       }
@@ -36,7 +39,8 @@ namespace Viterbi
     StateProbabilityMapType start_probability = h.GetStartProbability();
     BOOST_FOREACH(typename StateProbabilityMapType::value_type m, start_probability)
       {
-      os << "\tS: " << m.first << " P: " << m.second << std::endl;
+      os << "\tS: " << m.first
+         << " P: " << m.second << std::endl;
       }
 
     os << "Transition probabilities:" << std::endl;
@@ -46,19 +50,20 @@ namespace Viterbi
       {
       BOOST_FOREACH(typename StateProbabilityMapType::value_type m, tm.second)
         {
-        os << "\t FS: " << tm.first << " TS: " << m.first
+        os << "\t FS: " << tm.first
+           << " TS: " << m.first
            << " P: " << m.second << std::endl;
         }
       }
 
     os << "Emission probabilities:" << std::endl;
-    StateStateProbabilityMapType emission = h.GetEmissionProbability();
-    BOOST_FOREACH(typename StateStateProbabilityMapType::value_type em, emission)
+    StateObservationProbabilityMapType emission = h.GetEmissionProbability();
+    BOOST_FOREACH(typename StateObservationProbabilityMapType::value_type em, emission)
       {
-      BOOST_FOREACH(typename StateProbabilityMapType::value_type m,
-          em.second)
+      BOOST_FOREACH(typename ObservationProbabilityMapType::value_type m, em.second)
         {
-        os  << "\tFS: " << em.first << " TO: " << m.first
+        os  << "\tFS: " << em.first
+            << " TO: " << m.first
             << " P: " << m.second << std::endl;
         }
       }
@@ -92,8 +97,8 @@ namespace Viterbi
   // computes total probability for observation
   // most likely viterbi path
   // and probability of such path
-  template< class TState, class TProbability >
-  void ForwardViberti< TState, TProbability >::forward_viterbi()
+  template< class TState, class TObservation, class TProbability >
+  void ForwardViberti< TState, TObservation, TProbability >::forward_viterbi()
   {
     m_TotalProbabilityOfObservationSequence = 0;
     m_TotalProbabilityOfVibertiPath         = 0;
@@ -102,7 +107,7 @@ namespace Viterbi
     typedef boost::unordered_map<StateType, TrackingType >  TrackerMapType;
     TrackerMapType T;
 
-    BOOST_FOREACH(typename StateVectorType::value_type s, this->m_States)
+    BOOST_FOREACH(StateType s, this->m_States)
       {
       StateVectorType v_pth( 1 );
       v_pth[0] = s;
@@ -112,15 +117,15 @@ namespace Viterbi
       T[s] = TrackingType( probS, v_pth, probS );
       }
 
-    BOOST_FOREACH(typename StateVectorType::value_type output, this->m_Observations)
+    BOOST_FOREACH(ObservationType output, this->m_Observations)
       {
       TrackerMapType U;
 
-      BOOST_FOREACH(typename StateVectorType::value_type next_state, this->m_States)
+      BOOST_FOREACH(StateType next_state, this->m_States)
         {
         TrackingType next_tracker;
 
-        BOOST_FOREACH(typename StateVectorType::value_type source_state, this->m_States)
+        BOOST_FOREACH(StateType source_state, this->m_States)
           {
           TrackingType source_tracker = T[source_state];
 
@@ -147,7 +152,7 @@ namespace Viterbi
     // apply sum/max to the final states
     TrackingType final_tracker;
 
-    BOOST_FOREACH(typename StateVectorType::value_type state,  this->m_States)
+    BOOST_FOREACH(typename StateVectorType::value_type state, this->m_States)
       {
       TrackingType tracker = T[state];
 

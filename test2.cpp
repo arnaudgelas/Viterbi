@@ -13,9 +13,9 @@ void init( HMM< TState, TObservation, TProbability >& hmm )
   hmm.SetStates( states );
 
   typename HMMType::ObservationVectorType observations;
-  observations.push_back( "walk");
-  observations.push_back( "shop");
-  observations.push_back( "clean");
+  observations.push_back( 1 );
+  observations.push_back( 2 );
+  observations.push_back( 3 );
   hmm.SetObservations( observations );
 
   typename HMMType::StateProbabilityMapType start_probability;
@@ -31,19 +31,19 @@ void init( HMM< TState, TObservation, TProbability >& hmm )
   hmm.SetTransitionProbability( transition_probability );
 
   typename HMMType::StateObservationProbabilityMapType emission_probability;
-  emission_probability["Rainy"]["walk"] = 0.1;
-  emission_probability["Rainy"]["shop"] = 0.4;
-  emission_probability["Rainy"]["clean"] = 0.5;
-  emission_probability["Sunny"]["walk"] = 0.6;
-  emission_probability["Sunny"]["shop"] = 0.3;
-  emission_probability["Sunny"]["clean"] = 0.1;
+  emission_probability["Rainy"][0] = 0.1;
+  emission_probability["Rainy"][1] = 0.4;
+  emission_probability["Rainy"][2] = 0.5;
+  emission_probability["Sunny"][0] = 0.6;
+  emission_probability["Sunny"][1] = 0.3;
+  emission_probability["Sunny"][2] = 0.1;
   hmm.SetEmissionProbability( emission_probability );
 }
 
 int main(int , char* [])
 {
   typedef std::string                                         StateType;
-  typedef std::string                                         ObservationType;
+  typedef unsigned int                                        ObservationType;
   typedef double                                              ProbabilityType;
   typedef HMM< StateType, ObservationType, ProbabilityType >  HMMType;
 

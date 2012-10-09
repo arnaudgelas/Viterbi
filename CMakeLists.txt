@@ -6,4 +6,5 @@ find_package( Boost REQUIRED )
 
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-add_executable( viterbi test.cpp )
+add_executable( ViterbiTest test.cpp )
+add_executable( ViterbiTest2 test2.cpp )
