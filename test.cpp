@@ -50,16 +50,31 @@ int main(int , char* [])
   HMMType h;
   init( h );
 
-  std::cout << h;
+  std::cout << h << std::endl;
 
   ForwardViberti< StateType, ObservationType, ProbabilityType > fv( h );
-  fv.Update();
+
+  try
+    {
+    fv.Update();
+    }
+  catch( std::exception& e )
+    {
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::cout << std::endl;
 
   std::cout << "Total probability of the observation sequence: "
       << fv.GetTotalProbabilityOfObservationSequence() << std::endl;
 
+  std::cout << std::endl;
+
   std::cout << "Probability of the Viterbi path: "
       << fv.GetTotalProbabilityOfVibertiPath() << std::endl;
+
+  std::cout << std::endl;
 
   std::cout << "The Viterbi path: " << std::endl;
 

@@ -107,30 +107,119 @@ namespace Viterbi
     typedef boost::unordered_map<StateType, TrackingType >  TrackerMapType;
     TrackerMapType T;
 
-    BOOST_FOREACH(StateType s, this->m_States)
+    for( typename StateVectorType::iterator sIt = this->m_States.begin();
+         sIt != m_States.end();
+         ++sIt )
       {
+      StateType s = *sIt;
+
       StateVectorType v_pth( 1 );
       v_pth[0] = s;
 
-      ProbabilityType probS = m_StartProbability[s];
+      typename StateProbabilityMapType::iterator startIt = m_StartProbability.find( s );
 
-      T[s] = TrackingType( probS, v_pth, probS );
+      if( startIt != m_StartProbability.end() )
+        {
+        ProbabilityType probS = startIt->second;
+
+        T[s] = TrackingType( probS, v_pth, probS );
+        }
+      else
+        {
+        std::ostringstream message;
+        message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
+        message << "m_StartProbability[" << s <<"] does not exist" << std::endl;
+
+        MyException e( message.str() );
+        throw e;
+        }
       }
 
-    BOOST_FOREACH(ObservationType output, this->m_Observations)
+    for( typename ObservationVectorType::iterator obsIt = this->m_Observations.begin();
+         obsIt != this->m_Observations.end();
+         ++obsIt )
       {
+      ObservationType output = *obsIt;
       TrackerMapType U;
 
-      BOOST_FOREACH(StateType next_state, this->m_States)
+      for( typename StateVectorType::iterator sIt = this->m_States.begin();
+           sIt != m_States.end();
+           ++sIt )
         {
+        StateType next_state = *sIt;
         TrackingType next_tracker;
 
-        BOOST_FOREACH(StateType source_state, this->m_States)
+        for( typename StateVectorType::iterator sIt2 = this->m_States.begin();
+             sIt2 != m_States.end();
+             ++sIt2 )
           {
+          StateType source_state = *sIt2;
           TrackingType source_tracker = T[source_state];
 
-          ProbabilityType p = this->m_EmissionProbability[source_state][output];
-          p *= this->m_TransitionProbability[source_state][next_state];
+          ProbabilityType p;
+
+          typename StateObservationProbabilityMapType::iterator eIt = this->m_EmissionProbability.find( source_state );
+
+          if( eIt != this->m_EmissionProbability.end() )
+            {
+            typename ObservationProbabilityMapType::iterator oeIt = ( eIt->second ).find( output );
+
+            if( oeIt != ( eIt->second ).end() )
+              {
+              p = oeIt->second;
+              }
+            else
+              {
+              std::ostringstream message;
+              message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
+              message << "this->m_EmissionProbability[" << source_state
+                      << "][" << output << "] does not exist" << std::endl;
+
+              MyException e( message.str() );
+              throw e;
+              }
+            }
+          else
+            {
+            std::ostringstream message;
+            message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
+            message << "this->m_EmissionProbability[" << source_state
+                    << "][" << output << "] does not exist" << std::endl;
+
+            MyException e( message.str() );
+            throw e;
+            }
+
+          typename StateStateProbabilityMapType::iterator tIt = this->m_TransitionProbability.find( source_state );
+          if( tIt != this->m_TransitionProbability.end() )
+            {
+            typename StateProbabilityMapType::iterator stIt = ( tIt->second ).find( next_state );
+
+            if( stIt != ( tIt->second ).end() )
+              {
+              p *= stIt->second;
+              }
+            else
+              {
+              std::ostringstream message;
+              message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
+              message << "this->m_TransitionProbability[" << source_state
+                      << "][" << next_state << "] does not exist" << std::endl;
+
+              MyException e( message.str() );
+              throw e;
+              }
+            }
+          else
+            {
+            std::ostringstream message;
+            message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
+            message << "this->m_TransitionProbability[" << source_state
+                    << "][" << next_state << "] does not exist" << std::endl;
+
+            MyException e( message.str() );
+            throw e;
+            }
 
           source_tracker.prob *= p;
           source_tracker.v_prob *= p;
@@ -143,25 +232,43 @@ namespace Viterbi
             next_tracker.v_path.push_back(next_state);
             next_tracker.v_prob = source_tracker.v_prob;
             }
-        }
+          }
         U[next_state] = next_tracker;
-      }
+        }
+
       T = U;
-    }
+      }
 
     // apply sum/max to the final states
     TrackingType final_tracker;
 
-    BOOST_FOREACH(typename StateVectorType::value_type state, this->m_States)
+    for(typename StateVectorType::iterator sIt = this->m_States.begin();
+        sIt != this->m_States.end();
+        ++sIt )
       {
-      TrackingType tracker = T[state];
+      StateType state = *sIt;
+      typename TrackerMapType::iterator tIt = T.find( state );
 
-      final_tracker.prob += tracker.prob;
-
-      if(tracker.v_prob > final_tracker.v_prob)
+      if( tIt != T.end() )
         {
-        final_tracker.v_path = tracker.v_path;
-        final_tracker.v_prob = tracker.v_prob;
+        TrackingType tracker = tIt->second;
+
+        final_tracker.prob += tracker.prob;
+
+        if( tracker.v_prob > final_tracker.v_prob )
+          {
+          final_tracker.v_path = tracker.v_path;
+          final_tracker.v_prob = tracker.v_prob;
+          }
+        }
+      else
+        {
+        std::ostringstream message;
+        message << "Error: " << __FILE__ << ":" << __LINE__ << std::endl;
+        message << "T[" << state << "] does not exist" << std::endl;
+
+        MyException e( message.str() );
+        throw e;
         }
       }
 
