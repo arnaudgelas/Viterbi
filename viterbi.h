@@ -13,6 +13,24 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 
+class MyException : public std::exception
+{
+public:
+  MyException( const std::string& msg ) : Message( msg ) {}
+  MyException( const char* msg ) : Message( msg ) {}
+  MyException( const MyException& e ) : Message( e.Message ) {}
+  virtual ~MyException() throw() {}
+
+  virtual const char *what() const throw()
+  {
+    return Message.c_str();
+  }
+
+private:
+  void operator = ( const MyException& );
+
+  std::string Message;
+};
 
 namespace Viterbi
 {
