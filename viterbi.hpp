@@ -172,7 +172,7 @@ namespace Viterbi
               {
               std::ostringstream message;
               message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
-              message << "this->m_EmissionProbability[" << source_state
+              message << "m_EmissionProbability[" << source_state
                       << "][" << output << "] does not exist" << std::endl;
 
               MyException e( message.str() );
@@ -183,7 +183,7 @@ namespace Viterbi
             {
             std::ostringstream message;
             message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
-            message << "this->m_EmissionProbability[" << source_state
+            message << "m_EmissionProbability[" << source_state
                     << "][" << output << "] does not exist" << std::endl;
 
             MyException e( message.str() );
@@ -203,7 +203,7 @@ namespace Viterbi
               {
               std::ostringstream message;
               message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
-              message << "this->m_TransitionProbability[" << source_state
+              message << "m_TransitionProbability[" << source_state
                       << "][" << next_state << "] does not exist" << std::endl;
 
               MyException e( message.str() );
@@ -214,7 +214,7 @@ namespace Viterbi
             {
             std::ostringstream message;
             message << "Error: " << __FILE__ << " " << __LINE__ << std::endl;
-            message << "this->m_TransitionProbability[" << source_state
+            message << "m_TransitionProbability[" << source_state
                     << "][" << next_state << "] does not exist" << std::endl;
 
             MyException e( message.str() );
